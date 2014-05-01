@@ -7,8 +7,10 @@ Subset that will be translated
 ------------------------------
 
 F ::=
-    impossible (deadlock)
-  | invariant (B)
+    invariant (deadlock)
+  | impossible (deadlock)
+  | impossible (B)
+  | possible (deadlock)
   | possible (B)
   | B
 
@@ -20,13 +22,19 @@ B ::=
 Translation into Cunf's specification format
 --------------------------------------------
 
-tr[ impossible (deadlock) ]       = ! deadlock
-tr[ invariant (B) ]               = tr[B]
-tr[ possible (B) ]                = tr[B] (negation of)
+Cunf computes satisfiablity of formulas of the form "possible (B)"
 
-tr[ is-firable (t_1, ..., t_n) ]  = t_1 v ... v t_n
-tr[ B1 and B2 ]                   = ( tr[B1] ) ^ ( tr[B2] )
-tr[ B1 or B2 ]                    = tr[B1] v tr[B2]
+possible (X) = ! impossible (X) = ! invariant (!X)
+
+tr[ invariant (deadlock) ]         = ! deadlock (negation of)
+tr[ impossible (deadlock) ]        = deadlock (negation of)
+tr[ impossible (B) ]               = tr[B] (negation of)
+tr[ possible (deadlock) ]          = deadlock
+tr[ possible (B) ]                 = tr[B]
+
+tr[ is-fireable (t_1, ..., t_n) ]  = t_1 v ... v t_n
+tr[ B1 and B2 ]                    = ( tr[B1] ) ^ ( tr[B2] )
+tr[ B1 or B2 ]                     = tr[B1] v tr[B2]
 
 ????
 ----

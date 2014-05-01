@@ -18,10 +18,9 @@
 #CFLAGS:=-Wall -Wextra -std=c99 -pg
 CFLAGS:=-Wall -Wextra -std=c99 -g
 #CFLAGS:=-Wall -Wextra -std=c99
-#CXXFLAGS:=-Wall -Wextra -std=c++11 -O3
-CXXFLAGS:=-Wall -Wextra -g -std=c++98
-CPPFLAGS:=-I src/ -D_POSIX_C_SOURCE=200809L -D__STDC_LIMIT_MACROS -D__STDC_FORMAT_MACROS -I ~/local/usr/include/
-LDFLAGS:=-dead_strip
+CXXFLAGS:=-Wall -Wextra -std=c++11 -g -Wno-deprecated-declarations
+CPPFLAGS:=-I src/ -D_POSIX_C_SOURCE=200809L -D__STDC_LIMIT_MACROS -D__STDC_FORMAT_MACROS
+LDFLAGS:=-dead_strip -lxerces-c
 #LDFLAGS:=
 
 # source code
@@ -29,7 +28,7 @@ SRCS:=$(wildcard src/*.c src/*.cc src/*/*.c src/*/*.cc src/*/*/*.c src/*/*/*.cc)
 SRCS:=$(filter-out %/cunf-mcc14.cc, $(SRCS))
 
 # source code containing a main() function
-MSRCS:=$(wildcard src/cunf-mcc14.cc)
+MSRCS:=$(wildcard src/mcc2spec.cc)
 
 # compilation targets
 OBJS:=$(SRCS:.cc=.o)

@@ -1936,7 +1936,7 @@ namespace mcc
     "integer-expression",
     "http://mcc.lip6.fr/");
 
-
+#if 0
   static
   const ::xsd::cxx::tree::element_factory_initializer< 0, char, ::xml_schema::integer >
   _xsd_integer_constant_element_factory_init (
@@ -1944,7 +1944,7 @@ namespace mcc
     "http://mcc.lip6.fr/",
     "integer-constant",
     "http://mcc.lip6.fr/");
-
+#endif
 
   static
   const ::xsd::cxx::tree::element_factory_initializer< 0, char, ::mcc::integer_sum >
@@ -8462,7 +8462,7 @@ namespace mcc
     "integer-expression",
     "http://mcc.lip6.fr/");
 
-
+#if 0
   static
   const ::xsd::cxx::tree::element_serializer_initializer< 0, char, ::xml_schema::integer >
   _xsd_integer_constant_element_serializer_init (
@@ -8470,7 +8470,7 @@ namespace mcc
     "http://mcc.lip6.fr/",
     "integer-constant",
     "http://mcc.lip6.fr/");
-
+#endif
 
   static
   const ::xsd::cxx::tree::element_serializer_initializer< 0, char, ::mcc::integer_sum >

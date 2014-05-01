@@ -48,7 +48,7 @@ inline void mylog (int level, const char * fmt, ...)
 	if (level > CONFIG_MAX_VERB_LEVEL) return;
 	if (level > __verb_level) return;
 	va_start (ap, fmt);
-	vprintf (fmt, ap);
+	vfprintf (stderr, fmt, ap);
 	va_end (ap);
 }
 
