@@ -9,45 +9,38 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#include "mccproperty.hh"
-#include "config.h"
-#include "debug.h"
+#include "mcc-properties.hh"
+#include "util/config.h"
+#include "util/misc.h"
 
 #define TMP "/tmp/"
 
-using namespace std;
-
-void breakme ()
+std::string operator+ (const std::string & s, long i) 
 {
-	return;
-}
-
-string operator+ (const string & s, long i) 
-{
-	string ss (s);
-	ss.append (to_string (i));
+	std::string ss (s);
+	ss.append (std::to_string (i));
 	return ss;
 }
 
-string operator+ (int i, const string & s)
+std::string operator+ (int i, const std::string & s)
 {
 	return s + i;
 }
 
-string & operator+= (string & s, long i) 
+std::string & operator+= (std::string & s, long i) 
 {
-	return s.append (to_string (i));
+	return s.append (std::to_string (i));
 }
 
 #if 0
 class Unfolding {
 
-	string net_path;
-	string unf_path;
+	std::string net_path;
+	std::string unf_path;
 
 public:
 
-	Unfolding (string net_path) {
+	Unfolding (std::string net_path) {
 		struct stat stb;
 		int ret;
 
@@ -57,7 +50,7 @@ public:
 		}
 
 		this->net_path = net_path;
-		this->unf_path = string (TMP) + "d" + stb.st_dev;
+		this->unf_path = std::string (TMP) + "d" + stb.st_dev;
 		unf_path += "i" + to_string (stb.st_ino) + ".cuf";
 
 		TRACE (stb.st_dev, "llu");
@@ -112,7 +105,7 @@ bool inv_dead (const mcc::property & p, long nre) {
 	return true;
 }
 
-bool deadlock (const mcc::property & p, const string & unf) {
+bool deadlock (const mcc::property & p, const std::string & unf) {
 	int ret, i;
 	char buff[1024];
 
@@ -126,7 +119,7 @@ bool deadlock (const mcc::property & p, const string & unf) {
 	if (typeid (f1) != typeid (mcc::is_deadlock)) return false;
 
 	/* run cna for deadlocks */
-	string cmd = "cna-mcc " + unf + " /tmp/cna.out ";
+	std::string cmd = "cna-mcc " + unf + " /tmp/cna.out ";
 	cmd += "--deadlock --reduce 4-tree stb bin sccred";
 	DEBUG ("Running cna: '%s'", cmd.c_str ());
 	ret = system (cmd.c_str ());
@@ -181,10 +174,10 @@ int main (int argc, char ** argv)
 		return 0;
 	}
 
-	string pnml = argv[1];
-	string pep   = argv[2];
-	string unf   = argv[3];
-	string query = argv[4];
+	std::string pnml = argv[1];
+	std::string pep   = argv[2];
+	std::string unf   = argv[3];
+	std::string query = argv[4];
 	long   nre   = stol (argv[5]);
 
 	/* pset is the memory representation of the xml file */
