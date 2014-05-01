@@ -1,0 +1,6 @@
+*.d
+*.o
+tags
+dist/
+doc/html
+doc/latex
