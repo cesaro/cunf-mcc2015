@@ -14,8 +14,6 @@
 #include "util/config.h"
 #include "util/misc.h"
 
-#define TMP "/tmp/"
-
 void cannot ()
 {
 		printf ("CANNOT_COMPUTE\n");
@@ -27,103 +25,6 @@ void do_not ()
 		printf ("DO_NOT_COMPETE\n");
 		exit (EXIT_SUCCESS);
 }
-
-std::string operator+ (const std::string & s, long i) 
-{
-	std::string ss (s);
-	ss.append (std::to_string (i));
-	return ss;
-}
-
-std::string operator+ (int i, const std::string & s)
-{
-	return s + i;
-}
-
-std::string & operator+= (std::string & s, long i) 
-{
-	return s.append (std::to_string (i));
-}
-
-#if 0
-bool inv_dead (const mcc::property & p, long nre) {
-	SHOW (p.id().c_str(), "s");
-
-	const mcc::formula & f = p.formula ();
-	if (typeid (f) != typeid (mcc::invariant)) return false;
-
-	const mcc::invariant & finv = (const mcc::invariant &) f;
-	const mcc::formula & f1 = finv.formula1 ();
-	if (typeid (f1) != typeid (mcc::is_deadlock)) return false;
-
-	cout << "FORMULA " << p.id ();
-	cout << (nre == 0 ? " TRUE " : " FALSE ");
-	cout << "TECHNIQUES NET_UNFOLDING" << endl;
-
-	return true;
-}
-
-bool deadlock (const mcc::property & p, const std::string & unf) {
-	int ret, i;
-	char buff[1024];
-
-	SHOW (p.id().c_str(), "s");
-
-	const mcc::formula & f = p.formula ();
-	if (typeid (f) != typeid (mcc::impossibility)) return false;
-
-	const mcc::invariant & finv = (const mcc::invariant &) f;
-	const mcc::formula & f1 = finv.formula1 ();
-	if (typeid (f1) != typeid (mcc::is_deadlock)) return false;
-
-	/* run cna for deadlocks */
-	std::string cmd = "cna-mcc " + unf + " /tmp/cna.out ";
-	cmd += "--deadlock --reduce 4-tree stb bin sccred";
-	DEBUG ("Running cna: '%s'", cmd.c_str ());
-	ret = system (cmd.c_str ());
-	if (ret < 0) {
-		cout << "CANNOT_COMPUTE" << endl;
-		return true;
-	}
-
-	/* load the result */
-	ifstream fin ("/tmp/cna.out");
-	for (i = 0; i < 1024; i++) buff[i] = 0;
-	fin.getline (buff, 1024);
-
-	/* parse the result */
-	SHOW (buff, "s");
-	if (buff[16] != ':' && (buff[19] != 'Y' || buff[19] != 'N')) {
-		cout << "CANNOT_COMPUTE" << endl;
-		return true;
-	}
-
-	cout << "FORMULA " << p.id ();
-	cout << (buff[18] == 'N' ? " TRUE " : " FALSE ");
-	cout << "TECHNIQUES NET_UNFOLDING SAT_SMT" << endl;
-
-	return true;
-
-#if 0
-	try {
-		dynamic_cast<const mcc::formula_system &> (f);
-		DEBUG ("It is formula_system");
-	}
-	catch (...) { 
-		DEBUG ("Except 1");	
-	}
-	
-	try {
-		dynamic_cast<const mcc::invariant &> (f);
-		DEBUG ("It is invariant");
-	}
-	catch (...) {
-		DEBUG ("Except 2");	
-	}
-#endif
-}
-#endif
-
 
 void translate_predicate (const xml_schema::type & f, std::string & out)
 {
