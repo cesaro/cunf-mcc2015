@@ -14,16 +14,17 @@
 #include "util/config.h"
 #include "util/misc.h"
 
-void cannot ()
-{
-		printf ("CANNOT_COMPUTE\n");
-		exit (EXIT_SUCCESS);
-}
+#define EXIT_ERR	1
+#define EXIT_OK	0
 
-void do_not ()
+void cannot (const char * msg = 0)
 {
-		printf ("DO_NOT_COMPETE\n");
-		exit (EXIT_SUCCESS);
+		PRINT_ ("Error: cannot handle input formula");
+		if (msg)
+			PRINT (": %s", msg);
+		else
+			PRINT ("");
+		exit (EXIT_ERR);
 }
 
 void translate_predicate (const xml_schema::type & f, std::string & out)
@@ -73,7 +74,8 @@ void translate_predicate (const xml_schema::type & f, std::string & out)
 	}
 	else
 	{
-		do_not ();
+		cannot ("predicate is not 'conjunction', 'disjunction', " \
+				"or 'is-firable'");
 	}
 }
 
@@ -88,7 +90,8 @@ void translate_formula (const xml_schema::type & f, std::string & out, bool & ne
 	if (typeid (f) == typeid (mcc::invariant))
 	{
 		const mcc::invariant & f1 = (mcc::invariant &) f;
-		if (typeid (f1.boolean_formula ()) != typeid (mcc::deadlock)) do_not ();
+		if (typeid (f1.boolean_formula ()) != typeid (mcc::deadlock))
+			cannot ("for invariants, I can only handle deadlocks");
 		out = "! deadlock";
 		negate = true;
 	}
@@ -123,7 +126,7 @@ int main (int argc, char ** argv)
 {
 	if (argc != 1) {
 		PRINT ("Usage: mcc2spec < XMLFILE > SPECFILE");
-		return EXIT_FAILURE;
+		return EXIT_ERR;
 	}
 
 	// parse the XML file, pset is the memory representation of it
@@ -133,11 +136,11 @@ int main (int argc, char ** argv)
 	}
 	catch (std::ifstream::failure & e) {
 		PRINT ("mcc2spec: cannot read standard input");
-		return EXIT_FAILURE;
+		return EXIT_ERR;
 	}
 	catch (xml_schema::exception & e) {
-		std::cerr << e << std::endl;
-		return EXIT_FAILURE;
+		std::cerr << "Error: " << e << std::endl;
+		return EXIT_ERR;
 	}
 
 	// for each formula in the file ...
@@ -146,7 +149,7 @@ int main (int argc, char ** argv)
 		// reject the entire file on the first non-boolean formula
 		auto & f = p->formula ();
 		auto & bf = f.boolean_formula();
-		if (! bf.present()) do_not ();
+		if (! bf.present()) cannot ("can only handle boolean formulas");
 
 		// translate the formula to Cunf's spec format
 		std::string s;
@@ -158,6 +161,6 @@ int main (int argc, char ** argv)
 				p->id().c_str(), 
 				s.c_str ());
 	}
-	exit (EXIT_SUCCESS);
+	exit (EXIT_OK);
 }
 
