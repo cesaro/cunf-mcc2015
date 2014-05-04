@@ -25,7 +25,7 @@ $(TARGETS) : % : %.o $(OBJS)
 
 
 gen :
-	~/local/usr/bin/xsd cxx-tree \
+	xsd cxx-tree \
 		--generate-serialization  --generate-doxygen --generate-ostream \
 		--generate-comparison  --generate-detach \
 		--generate-default-ctor --generate-polymorphic \
