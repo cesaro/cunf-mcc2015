@@ -15,9 +15,10 @@
 
 include defs.mk
 
-.PHONY: fake all g test clean distclean prof dist
+.PHONY: fake all g test clean distclean prof dist inst
 
-all: $(TARGETS) tags
+all: $(TARGETS) tags inst
+	./scripts/runit
 
 $(TARGETS) : % : %.o $(OBJS)
 	@echo "LD  $@"
@@ -32,10 +33,34 @@ gen :
 		--namespace-map http://mcc.lip6.fr=mcc  \
 		--output-dir src/ --root-element property-set \
 		--namespace-map 'http://mcc.lip6.fr/=mcc' \
-		properties/mcc-properties.xsd
+		doc/mcc-properties.xsd
 	mv src/mcc-properties.cxx src/mcc-properties.cc
 	mv src/mcc-properties.hxx src/mcc-properties.hh
 
+B=~/BenchKit
+C=~/devel/cunf
+
+inst : $(TARGETS)
+	cp scripts/BenchKit_head.sh $B
+	cd $C; make src/cunf/cunf
+	cp $C/src/cunf/cunf $B/bin
+	cp src/mcc2cunf $B/bin
+	cp $C/tools/cont2pr.pl $B/bin
+	cp $C/tools/pnml2pep.py $B/bin
+	cp -R $C/tools/ptnet $B/bin/ptnet
+
+fix_namespaces:
+	rm -Rf $B/INPUTS/tmp
+	mkdir $B/INPUTS/tmp
+	cd $B/INPUTS/tmp; \
+	set -x; \
+	for i in ../*.tgz; do \
+		tar xzvf $$i; \
+		for j in */*xml; do ~/devel/cunf-mcc2014/mcc14fixnamespace $$j; done; \
+		tar czvf $$i *; \
+		rm -R $B/INPUTS/tmp/*; \
+	done; \
+	rm -R $B/INPUTS/tmp
 
 prof : $(TARGETS)
 	rm gmon.out.*

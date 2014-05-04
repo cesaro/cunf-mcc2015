@@ -125,7 +125,7 @@ void translate_formula (const xml_schema::type & f, std::string & out, bool & ne
 int main (int argc, char ** argv)
 {
 	if (argc != 1) {
-		PRINT ("Usage: mcc2spec < XMLFILE > SPECFILE");
+		PRINT ("Usage: mcc2cunf < XMLFILE > SPECFILE");
 		return EXIT_ERR;
 	}
 
@@ -135,7 +135,7 @@ int main (int argc, char ** argv)
 		pset = mcc::property_set_ (std::cin, "(stdin)", xml_schema::flags::dont_validate);
 	}
 	catch (std::ifstream::failure & e) {
-		PRINT ("mcc2spec: cannot read standard input");
+		PRINT ("mcc2cunf: cannot read standard input");
 		return EXIT_ERR;
 	}
 	catch (xml_schema::exception & e) {

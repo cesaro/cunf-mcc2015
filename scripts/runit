@@ -1,0 +1,55 @@
+#!/bin/bash
+
+# # open into fd 3
+# exec 3< e
+# 
+# 
+# read -u 3
+# echo $REPLY
+# read -u 3
+# echo $REPLY
+# 
+# # close fd 3
+# exec 3>&-
+
+# # loop from 1 to 10
+# for ((i = 1; i <= 10; i++))
+# do
+# 	echo $i
+# done
+# echo $i
+# exit 0
+
+if [ "$#" != 3 ]; then
+	NRM=`wc -l < doc/MODELS`
+	NRE=`wc -l < doc/EXAMS`
+	M=`echo "($RANDOM % $NRM) + 1" | bc`
+	E=`echo "($RANDOM % $NRE) + 1" | bc`
+	MODEL=`head -n$M doc/MODELS | tail -n1`
+	EXAM=`head -n$E doc/EXAMS | tail -n1`
+else
+	# Usage: runit MODEL EXAMINATION
+	MODEL="$1"
+	EXAM="$2"
+fi
+
+MODEL=Dekker-PT-010
+EXAM=ReachabilityDeadlock
+
+echo "MODEL=$MODEL"
+echo "EXAM=$EXAM"
+
+BKHOME=~/BenchKit/
+TMP=/tmp/run
+
+set -x
+
+mkdir -p "$TMP"
+rm -Rf "$TMP/$MODEL"
+cd "$TMP"
+tar xzvf "$BKHOME/INPUTS/$MODEL.tgz"
+cd "$MODEL"
+export BK_EXAMINATION=$EXAM
+export BK_TOOL=cunf
+"$BKHOME"/BenchKit_head.sh
+#rm -Rf "$TMP/$MODEL"
