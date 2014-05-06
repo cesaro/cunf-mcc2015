@@ -34,8 +34,8 @@ fi
 #MODEL=/tmp/run/HouseConstruction-PT-050 # unsafe
 #MODEL=Dekker-PT-020 # transition id != transition name
 #MODEL=CSRepetitions-PT-03
-EXAM=ReachabilityDeadlock
-#EXAM=ReachabilityFireabilitySimple
+#EXAM=ReachabilityDeadlock
+EXAM=ReachabilityFireabilitySimple
 #EXAM=ReachabilityFireability
 
 

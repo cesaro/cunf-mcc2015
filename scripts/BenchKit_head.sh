@@ -13,7 +13,7 @@ debug ()
 
 info ()
 {
-	echo "bkh:" "$*"
+	echo "bkh:" "$*" >&2
 }
 
 timeit ()
@@ -26,25 +26,27 @@ timeit ()
 
 mycat ()
 {
-	cat "$@"
-	#cat "$@" >&2
+	#cat "$@"
+	cat "$@" >&2
 }
 
 do_verif ()
 {
 	#debug "Translating the formula ..."
-	timeit mcc2cunf < "$BK_EXAMINATION.xml" > "cunf.spec"
-	info "mcc2cunf: time $WALLTIME maxrss $MAXRSS" | tee -a ri.times
-	if [ "$EXITST" != 0 ]; then
-	#if [ "$?" != 0 ]; then
+	#timeit
+	mcc2cunf < "$BK_EXAMINATION.xml" > "cunf.spec"
+	#info "mcc2cunf: time $WALLTIME maxrss $MAXRSS" | tee -a ri.times
+	#if [ "$EXITST" != 0 ]; then
+	if [ "$?" != 0 ]; then
 		info "Error: mcc2cunf returns error state, aborting"
 		echo "DO_NOT_COMPETE"
 		exit 0
 	fi
 
 	#debug "Translating PNML into PEP (+ place-replication encoding)..."
-	timeit sh -c 'pnml2pep_mcc14.py < model.pnml 2> model.err | cont2pr.pl > model.ll_net'
-	info "pnml2pep: time $WALLTIME maxrss $MAXRSS" | tee -a ri.times
+	#timeit sh -c '
+	pnml2pep_mcc14.py < model.pnml 2> model.err | cont2pr.pl > model.ll_net
+	#info "pnml2pep: time $WALLTIME maxrss $MAXRSS" | tee -a ri.times
 	if [ "$(cat model.err)" ]; then
 		info "Error: problems while translating PNML to PEP"
 		info "Error: quite probably the net is not 1-safe"
@@ -53,10 +55,11 @@ do_verif ()
 	fi
 
 	#debug "Running Cunf ..."
-	timeit cunf model.ll_net cunf.spec > cunf.out 2> cunf.err
-	info "cunf    : time $WALLTIME maxrss $MAXRSS" | tee -a ri.times
-	if [ "$EXITST" != 0 ]; then
-	#if [ "$?" != 0 ]; then
+	#timeit
+	cunf model.ll_net cunf.spec > cunf.out 2> cunf.err
+	#info "cunf    : time $WALLTIME maxrss $MAXRSS" | tee -a ri.times
+	#if [ "$EXITST" != 0 ]; then
+	if [ "$?" != 0 ]; then
 		if grep -q 'is not safe' cunf.err; then
 			info "Error: cunf seems to detect the net is not safe, aborting"
 			mycat cunf.out
