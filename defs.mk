@@ -28,7 +28,7 @@ SRCS:=$(wildcard src/*.c src/*.cc src/*/*.c src/*/*.cc src/*/*/*.c src/*/*/*.cc)
 SRCS:=$(filter-out %/cunf-mcc14.cc, $(SRCS))
 
 # source code containing a main() function
-MSRCS:=$(wildcard src/mcc2spec.cc)
+MSRCS:=$(wildcard src/mcc2cunf.cc)
 
 # compilation targets
 OBJS:=$(SRCS:.cc=.o)
@@ -60,19 +60,6 @@ YACC:=bison
 	@set -e; $(CXX) -MM -MT $*.o $(CXXFLAGS) $(CPPFLAGS) $< | \
 	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' > $@;
 
-%.cc : %.l
-	@echo "LEX $<"
-	@$(LEX) -o $@ $^
-
-%.cc : %.y
-	@echo "YAC $<"
-	@$(YACC) -o $@ $^
-
-# cancelling gnu make builtin rules for lex/yacc to c
-# http://ftp.gnu.org/old-gnu/Manuals/make-3.79.1/html_chapter/make_10.html#SEC104
-%.c : %.l
-%.c : %.y
-
 %.o : %.c
 	@echo "CC  $<"
 	@$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
@@ -80,76 +67,4 @@ YACC:=bison
 %.o : %.cc
 	@echo "CXX $<"
 	@$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-%.pdf : %.dot
-	@echo "DOT $<"
-	@dot -T pdf < $< > $@
-
-%.jpg : %.dot
-	@echo "DOT $<"
-	@dot -T jpg < $< > $@
-
-%.dot : %.ll_net
-	@echo "P2D $<"
-	@src/pep2dot $< > $@
-	@#tools/pep2dot.py < $< > $@
-
-%.ll_net : %.cuf
-	@echo "C2P $<"
-	@tools/cuf2pep.py < $< > $@
-
-#%.ll_net : %.mp
-#	@echo "C2P $<"
-#	@tools/mp2pep.py < $< > $@
-
-%.unf.cuf : %.ll_net
-	@echo "UNF $<"
-	@src/main $<
-
-%.mp.mp : %.unf.cuf
-	@echo "MER $<"
-	@tools/cmerge.py < $< > $@
-
-%.unf.cuf.tr : %.ll_net
-	tools/trt.py timeout=5000 t=cunf net=$< > $@
-
-%.unf.mci : %.ll_net
-	@echo "MLE $<"
-	@mole $< -m $@
-
-%.unf.mci.tr : %.ll_net
-	tools/trt.py timeout=900 t=mole net=$< > $@
-
-%.dl.smod.tr : %.unf.mci.tr
-	tools/trt.py timeout=1200 t=dl.smod mci=$(<:%.tr=%) > $@
-
-%.dl.cnmc.tr : %.unf.cuf.tr
-	tools/trt.py timeout=900 reps=10 t=dl.cnmc cnf cuf=$(<:%.tr=%) > $@
-
-%.dl.cndc.tr : %.unf.cuf.tr
-	tools/trt.py timeout=900 reps=10 t=dl.cndc cuf=$(<:%.tr=%) > $@
-
-%.dl.clp.tr : %.unf.mci.tr
-	tools/trt.py timeout=900 reps=10 t=dl.clp mci=$(<:%.tr=%) > $@
-
-%.dl.lola.tr : %.ll_net
-	tools/trt.py timeout=600 t=dl.lola net=$< > $@
-
-%.dl.smv.tr : %.ll_net
-	tools/trt.py timeout=120 t=dl.smv net=$< > $@
-
-%.dl.mcm.tr : %.unf.mci.tr
-	tools/trt.py timeout=600 t=dl.mcm mci=$(<:%.tr=%) > $@
-
-%.ll_net : %.xml
-	@echo "X2P $<"
-	@tools/xml2pep.pl < $< > $@
-
-%.ll_net : %.pnml
-	@echo "P2P $<"
-	@tools/pnml2pep.py < $< > $@
-
-%.ll_net : %.grml
-	@echo "G2P $<"
-	@tools/grml2pep.py < $< > $@
 

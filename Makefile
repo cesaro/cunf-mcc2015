@@ -1,5 +1,5 @@
 
-# Copyright (C) 2010, 2011  Cesar Rodriguez <cesar.rodriguez@lsv.ens-cachan.fr>
+# Copyright (C) 2010-2014  Cesar Rodriguez <cesar.rodriguez@cs.ox.ac.uk>
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -15,14 +15,14 @@
 
 include defs.mk
 
-.PHONY: fake all g test clean distclean prof dist
+.PHONY: fake all g test clean distclean prof dist inst
 
-all: $(TARGETS) tags
+all: $(TARGETS) tags inst
+	./scripts/runit
 
 $(TARGETS) : % : %.o $(OBJS)
 	@echo "LD  $@"
 	@$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS) 
-
 
 gen :
 	xsd cxx-tree \
@@ -33,13 +33,34 @@ gen :
 		--namespace-map http://mcc.lip6.fr=mcc  \
 		--output-dir src/ --root-element property-set \
 		--namespace-map 'http://mcc.lip6.fr/=mcc' \
-		properties/mcc-properties.xsd
+		doc/mcc-properties.xsd
 	mv src/mcc-properties.cxx src/mcc-properties.cc
 	mv src/mcc-properties.hxx src/mcc-properties.hh
 
+B=~/BenchKit
+C=~/devel/cunf
 
-#$(MINISAT)/build/release/lib/libminisat.a :
-#	cd $(MINISAT); make lr
+inst : $(TARGETS)
+	cp scripts/BenchKit_head.sh $B
+	cd $C; make src/cunf/cunf
+	cp $C/src/cunf/cunf $B/bin
+	cp src/mcc2cunf $B/bin
+	cp $C/tools/cont2pr.pl $B/bin
+	cp $C/tools/pnml2pep.py $B/bin
+	cp -R $C/tools/ptnet $B/bin/ptnet
+
+fix_namespaces:
+	rm -Rf $B/INPUTS/tmp
+	mkdir $B/INPUTS/tmp
+	cd $B/INPUTS/tmp; \
+	set -x; \
+	for i in ../*.tgz; do \
+		tar xzvf $$i; \
+		for j in */*xml; do ~/devel/cunf-mcc2014/mcc14fixnamespace $$j; done; \
+		tar czvf $$i *; \
+		rm -R $B/INPUTS/tmp/*; \
+	done; \
+	rm -R $B/INPUTS/tmp
 
 prof : $(TARGETS)
 	rm gmon.out.*
@@ -60,47 +81,6 @@ vars :
 	@echo MOBJS $(MOBJS)
 	@echo TARGETS $(TARGETS)
 	@echo DEPS $(DEPS)
-
-test tests : $(TEST_NETS:%.ll_net=%.r) $(TEST_NETS:%.ll_net=%.unf.r)
-	@echo " DIF ..."
-	@echo > t.diff
-	@for n in $(TEST_NETS:%.ll_net=%); do diff -Na $$n.r $$n.unf.r >> t.diff; done; true;
-
-cunf.tr : $(ALL_NETS:%.ll_net=%.unf.cuf.tr)
-	@rm -f $@
-	@cat $(ALL_NETS:%.ll_net=%.unf.cuf.tr) > $@
-
-mole.tr : $(MCI_NETS:%.ll_net=%.unf.mci.tr)
-	@rm -f $@
-	@cat $(MCI_NETS:%.ll_net=%.unf.mci.tr) > $@
-
-dl.smod.tr : $(DEAD_NETS:%.ll_net=%.dl.smod.tr)
-	@rm -f $@
-	@cat $(DEAD_NETS:%.ll_net=%.dl.smod.tr) > $@
-
-dl.clp.tr : $(DEAD_NETS:%.ll_net=%.dl.clp.tr)
-	@rm -f $@
-	@cat $(DEAD_NETS:%.ll_net=%.dl.clp.tr) > $@
-
-dl.cnmc.tr : $(CNMC_NETS:%.ll_net=%.dl.cnmc.tr)
-	@rm -f $@
-	@cat $(CNMC_NETS:%.ll_net=%.dl.cnmc.tr) > $@
-
-dl.cndc.tr : $(CNMC_NETS:%.ll_net=%.dl.cndc.tr)
-	@rm -f $@
-	@cat $(CNMC_NETS:%.ll_net=%.dl.cndc.tr) > $@
-
-dl.lola.tr : $(DEAD_NETS:%.ll_net=%.dl.lola.tr)
-	@rm -f $@
-	@cat $(DEAD_NETS:%.ll_net=%.dl.lola.tr) > $@
-
-dl.smv.tr : $(DEAD_NETS:%.ll_net=%.dl.smv.tr)
-	@rm -f $@
-	@cat $(DEAD_NETS:%.ll_net=%.dl.smv.tr) > $@
-
-dl.mcm.tr : $(DEAD_NETS:%.ll_net=%.dl.mcm.tr)
-	@rm -f $@
-	@cat $(DEAD_NETS:%.ll_net=%.dl.mcm.tr) > $@
 
 clean :
 	@rm -f $(TARGETS) $(MOBJS) $(OBJS)
