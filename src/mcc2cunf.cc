@@ -29,9 +29,11 @@ void cannot (const char * msg = 0)
 
 void translate_predicate (const xml_schema::type & f, std::string & out)
 {
+	SHOW (typeid (f) == typeid (mcc::is_fireable), "d");
+	SHOW (typeid (f) == typeid (mcc::deadlock), "d");
+	SHOW (typeid (f) == typeid (mcc::negation), "d");
 	SHOW (typeid (f) == typeid (mcc::conjunction), "d");
 	SHOW (typeid (f) == typeid (mcc::disjunction), "d");
-	SHOW (typeid (f) == typeid (mcc::is_fireable), "d");
 
 	if (typeid (f) == typeid (mcc::is_fireable))
 	{
@@ -44,6 +46,17 @@ void translate_predicate (const xml_schema::type & f, std::string & out)
 			if (it != tseq.begin ()) out += "|| \"";
 			out += *it + "\" ";
 		}
+		out += ")";
+	}
+	else if (typeid (f) == typeid (mcc::deadlock))
+	{
+		out += "deadlock";
+	}
+	else if (typeid (f) == typeid (mcc::negation))
+	{
+		const mcc::negation & f1 = (mcc::negation &) f;
+		out += "! (";
+		translate_predicate (f1.boolean_formula (), out);
 		out += ")";
 	}
 	else if (typeid (f) == typeid (mcc::disjunction))
@@ -63,23 +76,25 @@ void translate_predicate (const xml_schema::type & f, std::string & out)
 	{
 		const mcc::conjunction & f1 = (mcc::conjunction &) f;
 		auto fseq = f1.boolean_formula ();
-		out += "( ";
+		out += "(";
 		for (auto it = fseq.begin (); it != fseq.end (); ++it)
 		{
 			// *it is xml_schema::type
-			if (it != fseq.begin ()) out += "&& \"";
+			if (it != fseq.begin ()) out += ") && (";
 			translate_predicate (*it, out);
 		}
 		out += ")";
 	}
 	else
 	{
-		cannot ("predicate is not 'conjunction', 'disjunction', " \
-				"or 'is-firable'");
+		cannot ("can only translate 'conjunction', 'disjunction', " \
+				"'deadlock', or 'is-firable'");
 	}
 }
 
-void translate_formula (const xml_schema::type & f, std::string & out, bool & negate)
+void
+translate_formula (const xml_schema::type & f, std::string & out,
+		bool & negate)
 {
 	SHOW (typeid (f) == typeid (mcc::invariant), "d");
 	SHOW (typeid (f) == typeid (mcc::impossibility), "d");
@@ -87,34 +102,24 @@ void translate_formula (const xml_schema::type & f, std::string & out, bool & ne
 
 	negate = false;
 
-	if (typeid (f) == typeid (mcc::invariant))
+	if (typeid (f) == typeid (mcc::possibility))
 	{
-		const mcc::invariant & f1 = (mcc::invariant &) f;
-		if (typeid (f1.boolean_formula ()) != typeid (mcc::deadlock))
-			cannot ("for invariants, I can only handle deadlocks");
-		out = "! deadlock";
-		negate = true;
+		const mcc::possibility & f1 = (mcc::possibility &) f;
+		translate_predicate (f1.boolean_formula (), out);
 	}
 	else if (typeid (f) == typeid (mcc::impossibility))
 	{
 		const mcc::impossibility & f1 = (mcc::impossibility &) f;
-		if (typeid (f1.boolean_formula ()) == typeid (mcc::deadlock))
-		{
-			out = "deadlock";
-		}
-		else
-		{
-			translate_predicate (f1.boolean_formula (), out);
-		}
+		translate_predicate (f1.boolean_formula (), out);
 		negate = true;
 	}
-	else if (typeid (f) == typeid (mcc::possibility))
+	else if (typeid (f) == typeid (mcc::invariant))
 	{
-		const mcc::possibility & f1 = (mcc::possibility &) f;
-		if (typeid (f1.boolean_formula ()) == typeid (mcc::deadlock))
-			out = "deadlock";
-		else
-			translate_predicate (f1.boolean_formula (), out);
+		const mcc::invariant & f1 = (mcc::invariant &) f;
+		out += "! (";
+		translate_predicate (f1.boolean_formula (), out);
+		out += ")";
+		negate = true;
 	}
 	else
 	{
@@ -132,7 +137,8 @@ int main (int argc, char ** argv)
 	// parse the XML file, pset is the memory representation of it
 	std::auto_ptr<mcc::property_set> pset;
 	try {
-		pset = mcc::property_set_ (std::cin, "(stdin)", xml_schema::flags::dont_validate);
+		pset = mcc::property_set_ (std::cin, "(stdin)",
+				xml_schema::flags::dont_validate);
 	}
 	catch (std::ifstream::failure & e) {
 		PRINT ("mcc2cunf: cannot read standard input");

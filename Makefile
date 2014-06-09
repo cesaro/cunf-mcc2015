@@ -18,7 +18,7 @@ include defs.mk
 .PHONY: fake all g test clean distclean prof dist inst
 
 all: $(TARGETS) tags inst
-	./scripts/runit
+	#./scripts/runit
 
 $(TARGETS) : % : %.o $(OBJS)
 	@echo "LD  $@"
@@ -46,8 +46,9 @@ inst : $(TARGETS)
 	cp $C/src/cunf/cunf $B/bin
 	cp src/mcc2cunf $B/bin
 	cp $C/tools/cont2pr.pl $B/bin
-	cp $C/tools/pnml2pep.py $B/bin
-	cp -R $C/tools/ptnet $B/bin/ptnet
+	cp scripts/pnml2pep_mcc14.py $B/bin
+	rm -Rf $B/bin/ptnet
+	cp -R scripts/ptnet $B/bin/ptnet
 
 fix_namespaces:
 	rm -Rf $B/INPUTS/tmp
@@ -62,15 +63,8 @@ fix_namespaces:
 	done; \
 	rm -R $B/INPUTS/tmp
 
-prof : $(TARGETS)
-	rm gmon.out.*
-	src/main /tmp/ele4.ll_net
-
 tags : $(SRCS)
 	ctags -R src
-
-g : $(TARGETS)
-	gdb ./src/cunf/cunf
 
 vars :
 	@echo CC $(CC)
@@ -90,29 +84,6 @@ clean :
 distclean : clean
 	@rm -f $(DEPS)
 	@echo Mr. Proper done.
-
-dist : all
-	rm -Rf dist/
-	mkdir dist/
-	mkdir dist/bin
-	mkdir dist/lib
-	mkdir dist/examples
-	mkdir dist/examples/corbett
-	mkdir dist/examples/dekker
-	mkdir dist/examples/dijkstra
-	cp src/main dist/bin/cunf
-	cp src/pep2dot dist/bin
-	cp tools/cna dist/bin
-	cp tools/grml2pep.py dist/bin
-	cp tools/cuf2pep.py dist/bin
-	cp minisat/core/minisat dist/bin
-	cp -R tools/ptnet dist/lib
-	cp -R examples/cont dist/examples/corbett/
-	cp -R examples/other dist/examples/corbett/
-	cp -R examples/plain dist/examples/corbett/
-	cp -R examples/pr dist/examples/corbett/
-	for i in 02 04 05 08 10 20 30 40 50; do ./tools/mkdekker.py $$i > dist/examples/dekker/dek$$i.ll_net; done
-	for i in 02 03 04 05 06 07; do ./tools/mkdijkstra.py $$i > dist/examples/dijkstra/dij$$i.ll_net; done
 
 -include $(DEPS)
 

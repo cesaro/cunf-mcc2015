@@ -1,0 +1,12 @@
+#CTLCardinality
+#CTLFireability
+#CTLFireabilitySimple
+#LTLCardinality
+#LTLFireability
+#LTLFireabilitySimple
+#ReachabilityBounds
+#ReachabilityCardinality
+#ReachabilityComputeBounds
+ReachabilityDeadlock
+ReachabilityFireability
+ReachabilityFireabilitySimple
