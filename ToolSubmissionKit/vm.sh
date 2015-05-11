@@ -1,5 +1,6 @@
 launch_a_vm_with_qemu_or_vbox () {
 	set -x
+	# Change "-smp 1" to "-smp N" for allocating N cores
 	KVM=$(which qemu-kvm)
 	if [ "$KVM" ] ; then
 		$KVM -vnc :$VNC \
@@ -23,14 +24,16 @@ launch_a_vm_with_qemu_or_vbox () {
 			exit -1
 		fi
 
-		if [ -z "$($VBOX list vms | grep mcc2014)" ] ; then
-			$VBOX createvm --name mcc2014 --ostype Debian_64 --register
-			$VBOX modifyvm mcc2014 --memory $MAXMEM --boot1 disk
-			$VBOX storagectl mcc2014 --name sata_controller --add sata
-			$VBOX storageattach mcc2014 --storagectl sata_controller  --port 0 --device 0 --type hdd --medium $HDD
-			$VBOX modifyvm mcc2014 --natpf1 "SSH,tcp,127.0.0.1,$SSHP,,22"
+		# I do not know how to allocae N cores with VirtualBox
+
+		if [ -z "$($VBOX list vms | grep mcc2015)" ] ; then
+			$VBOX createvm --name mcc2015 --ostype Debian_64 --register
+			$VBOX modifyvm mcc2015 --memory $MAXMEM --boot1 disk
+			$VBOX storagectl mcc2015 --name sata_controller --add sata
+			$VBOX storageattach mcc2015 --storagectl sata_controller  --port 0 --device 0 --type hdd --medium $HDD
+			$VBOX modifyvm mcc2015 --natpf1 "SSH,tcp,127.0.0.1,$SSHP,,22"
 		fi
-		$VBOX startvm mcc2014
+		$VBOX startvm mcc2015
 	fi
 }
 

@@ -68,6 +68,6 @@ STDERR_FILE="$OUTPUT_DIR/node_${NODE_NUMBER}_OUTPUTS/log-${THE_TOOL_NAME}-${THE_
 # demarrer la VM
 sh vm.sh $VMPATH 2> /dev/null
 # lancer la commande
-ssh -i "$BENCHKIT_DIR/bk-private_key" -p "$SSHP" $VM_LOGIN@localhost "$COMMAND" 2>> "$STDERR_FILE"
+ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i "$BENCHKIT_DIR/bk-private_key" -p "$SSHP" $VM_LOGIN@localhost "$COMMAND" 2>> "$STDERR_FILE"
 # arreter la VM
-#ssh -i "$BENCHKIT_DIR/bk-private_key" -p "$SSHP" root@localhost "halt"
+#ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i "$BENCHKIT_DIR/bk-private_key" -p "$SSHP" root@localhost "halt"

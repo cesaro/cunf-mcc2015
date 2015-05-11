@@ -12,9 +12,10 @@ display_usage () {
 	echo "     <input>          : see BenchKit documentation, the name of the directory where the tool is executed"
 	echo
 	echo "IMPORTANT: you must run $0 in the directory you unpack the distribution."
+	echo "IMPORTANT: in this version, only one core is allocated to the VM. This can be changed in the file vm.sh (at least for Qemu)."
 }
 
-export BENCHKIT_VERSION="version MCC2014 (monitoring deactivated, Feb 23, 2014)"
+export BENCHKIT_VERSION="version MCC2015 (monitoring deactivated, Feb 10, 2015)"
 
 if [ $# -eq 0 -o "$1" = "--help" -o "$1" = "-h" ] ; then
 	display_usage
