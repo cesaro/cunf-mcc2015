@@ -51,7 +51,7 @@ inst : $(TARGETS) $R
 	cd $C; make src/cunf/cunf
 	cp $C/src/cunf/cunf $R/bin
 	cp $C/tools/cont2pr.pl $R/bin
-	cp scripts/pnml2pep_mcc15.py $R/bin
+	cp scripts/mcc15-helper.py $R/bin
 	cp -R $P/src/{mcc15,pncat,ptnet} $R/bin
 
 fix_namespaces:

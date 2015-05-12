@@ -22,16 +22,126 @@ timeit ()
 	MAXRSS=$(($(tail -n1 bk.time) / 1024))MB
 }
 
+timeit_mac ()
+{
+	/usr/bin/time -l -- $* 2> ri.time
+	EXITST=$?
+	WALLTIME=$(head -n1 ri.time | sed 's/real.*//g;s/ //g')s
+	M=$(head -n2 ri.time | tail -n1 | sed 's/max.*//g;s/ //g')
+	MAXRSS=$(($M / 1024 / 1024))MB
+}
+
 mycat ()
 {
 	#cat "$@"
 	cat "$@" >&2
 }
 
+translate_model ()
+{
+	if test -f model.ll_net; then return 0; fi
+	#debug "Translating PNML into PEP (+ place-replication encoding)..."
+	#timeit sh -c '
+	mcc15-helper.py pnml2pep model.pnml model.ll_net > err 2>&1
+	if [ "$?" != "0" ]; then
+		mycat err
+		info "Error: pnml2pep: problems"
+		info "Error: pnml2pep: quite probably the net is not 1-safe"
+		echo "DO_NOT_COMPETE"
+		exit 0
+	fi
+	mycat err
+	return 0
+}
+
+translate_spec ()
+{
+	if test -f $BK_EXAMINATION.cunf; then return 0; fi
+	if [ "$BK_EXAMINATION" == "ReachabilityDeadlock" ]; then
+		debug "special case"
+		echo "special case :)" > ReachabilityDeadlock.cunf
+		return 0
+	fi
+	mcc15-helper.py xml2cunf $BK_EXAMINATION.xml $BK_EXAMINATION.cunf > err 2>&1
+	if [ "$?" != "0" ]; then
+		mycat err
+		info "Error: xml2cunf: returns error state, aborting"
+		echo "DO_NOT_COMPETE"
+		exit 0
+	fi
+	mycat err
+	return 0
+}
+
 do_verif ()
 {
-	id=123
-	echo "FORMULA $id TRUE TECHNIQUES NET_UNFOLDING SAT_SMT"
+	translate_model
+	translate_spec
+	return 0
+
+	#timeit
+	cunf model.ll_net $BK_EXAMINATION.cunf > cunf.out 2> cunf.err
+	#info "cunf    : time $WALLTIME maxrss $MAXRSS" | tee -a ri.times
+	#if [ "$EXITST" != 0 ]; then
+	if [ "$?" != 0 ]; then
+		if grep -q 'is not safe' cunf.err; then
+			info "Error: cunf seems to detect the net is not safe, aborting"
+			mycat cunf.out
+			mycat cunf.err
+			echo "DO_NOT_COMPETE"
+			exit 0
+		fi
+		info "Error: cunf returns an error state, aborting"
+		mycat cunf.out
+		mycat cunf.err
+		echo "CANNOT_COMPUTE"
+		exit 0
+	fi
+
+	#debug "Mixing formula ids and verification results"
+	grep '^#' cunf.spec > tmp.ids
+	grep '^Result   :' cunf.out > tmp.results
+
+	#echo "Result   : UNSAT" > tmp.results
+	#> tmp.results
+
+	let "n = $(wc -l < tmp.ids)"
+	let "m = $(wc -l < tmp.results)"
+	#debug "$n lines in tmp.ids; $m lines in tmp.results"
+	if [ "$n" != "$m" ]; then
+		info "WARNING: mismatch between # of formula ids and # of result lines"
+		info "Specification file:"
+		mycat cunf.spec
+		info "Results file:"
+		mycat cunf.out
+	fi
+
+	exec 3< tmp.ids
+	exec 4< tmp.results
+	for ((i = 1; i <= n; i++))
+	do
+		read -u 3 lineid
+		read -u 4 lineres
+		negate=${lineid:2:1}
+		id=${lineid:4}
+		res=${lineres:11}
+		#debug "negate '$negate' id '$id' result '$res'"
+
+		if [ "$negate" == "Y" ]; then
+			if [ "$res" == "SAT" ]; then
+				res=UNSAT
+			elif [ "$res" == "UNSAT" ]; then
+				res=SAT
+			fi
+		fi
+		if [ "$res" == "SAT" ]; then
+			echo "FORMULA $id TRUE TECHNIQUES NET_UNFOLDING SAT_SMT"
+		elif [ "$res" == "UNSAT" ]; then
+			echo "FORMULA $id FALSE TECHNIQUES NET_UNFOLDING SAT_SMT"
+		else
+			echo "FORMULA $id CANNOT_COMPUTE"
+		fi
+	done
 }
 
 function main () {

@@ -3,6 +3,7 @@
 timeit ()
 {
 	/usr/bin/time -l -- $* 2> ri.time
+	EXITST=$?
 	WALLTIME=$(head -n1 ri.time | sed 's/real.*//g;s/ //g')s
 	M=$(head -n2 ri.time | tail -n1 | sed 's/max.*//g;s/ //g')
 	MAXRSS=$(($M / 1024 / 1024))MB
