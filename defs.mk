@@ -24,11 +24,11 @@ LDFLAGS:=-dead_strip -lxerces-c
 #LDFLAGS:=
 
 # source code
-SRCS:=$(wildcard src/*.c src/*.cc src/*/*.c src/*/*.cc src/*/*/*.c src/*/*/*.cc)
+#SRCS:=$(wildcard src/*.c src/*.cc src/*/*.c src/*/*.cc src/*/*/*.c src/*/*/*.cc)
 SRCS:=$(filter-out %/cunf-mcc14.cc, $(SRCS))
 
 # source code containing a main() function
-MSRCS:=$(wildcard src/mcc2cunf.cc)
+#MSRCS:=$(wildcard src/mcc2cunf.cc)
 
 # compilation targets
 OBJS:=$(SRCS:.cc=.o)

@@ -2,9 +2,10 @@
 
 timeit ()
 {
-	/usr/bin/time -f '%e\n%M' -o ri.time $*
-	WALLTIME=$(head -n1 ri.time)s
-	MAXRSS=$(($(tail -n1 ri.time) / 1024))MB
+	/usr/bin/time -l -- $* 2> ri.time
+	WALLTIME=$(head -n1 ri.time | sed 's/real.*//g;s/ //g')s
+	M=$(head -n2 ri.time | tail -n1 | sed 's/max.*//g;s/ //g')
+	MAXRSS=$(($M / 1024 / 1024))MB
 }
 
 ########################
@@ -35,14 +36,14 @@ fi
 #MODEL=Dekker-PT-020 # transition id != transition name
 #MODEL=CSRepetitions-PT-03
 #EXAM=ReachabilityDeadlock
-EXAM=ReachabilityFireabilitySimple
+#EXAM=ReachabilityFireabilitySimple
 #EXAM=ReachabilityFireability
 
 
 echo "rit: MODEL=$MODEL"
 echo "rit: EXAM=$EXAM"
 
-BKHOME=~/BenchKit/
+BKHOME=/tmp/benchkit
 TMP=/tmp/run
 
 mkdir -p "$TMP"

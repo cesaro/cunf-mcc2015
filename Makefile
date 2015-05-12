@@ -24,6 +24,9 @@ $(TARGETS) : % : %.o $(OBJS)
 	@echo "LD  $@"
 	@$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS) 
 
+ssh :
+	ssh -v -i ToolSubmissionKit/bk-private_key mcc@localhost -p2222
+
 gen :
 	xsd cxx-tree \
 		--generate-serialization  --generate-doxygen --generate-ostream \
@@ -37,18 +40,19 @@ gen :
 	mv src/mcc-properties.cxx src/mcc-properties.cc
 	mv src/mcc-properties.hxx src/mcc-properties.hh
 
-B=~/BenchKit
-C=~/devel/cunf
+R=/tmp/BenchKit
+C=~/x/devel/cunf
+P=~/x/devel/pncat
 
-inst : $(TARGETS)
-	cp scripts/BenchKit_head.sh $B
+inst : $(TARGETS) $R
+	rm -Rf $R/bin/
+	mkdir $R/bin/
+	cp scripts/BenchKit_head.sh $R
 	cd $C; make src/cunf/cunf
-	cp $C/src/cunf/cunf $B/bin
-	cp src/mcc2cunf $B/bin
-	cp $C/tools/cont2pr.pl $B/bin
-	cp scripts/pnml2pep_mcc14.py $B/bin
-	rm -Rf $B/bin/ptnet
-	cp -R scripts/ptnet $B/bin/ptnet
+	cp $C/src/cunf/cunf $R/bin
+	cp $C/tools/cont2pr.pl $R/bin
+	cp scripts/pnml2pep_mcc15.py $R/bin
+	cp -R $P/src/{mcc15,pncat,ptnet} $R/bin
 
 fix_namespaces:
 	rm -Rf $B/INPUTS/tmp
