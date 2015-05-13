@@ -40,6 +40,7 @@ inst : $(TARGETS) $R
 	cp $C/src/cunf/cunf $R/bin
 	cp $C/tools/cont2pr.pl $R/bin
 	cp scripts/mcc15-helper.py $R/bin
+	cp scripts/repack.sh $R/bin
 	cp -R $P/src/{mcc15,pncat,ptnet} $R/bin
 
 vm_inst : inst
