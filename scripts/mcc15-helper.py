@@ -10,32 +10,40 @@ import ptnet
 import mcc15
 
 def pnml2pep () :
-    fin = open (sys.argv[2], 'r')
-    fout = open (sys.argv[3], 'w')
 
-    n = ptnet.Net ()
-    n.read (fin, 'pnml')
+    n = ptnet.load_net (sys.argv[2], 'pnml', 'mcc15-helper: ')
+    #fin = open (sys.argv[2], 'r')
+    #n.read (fin, 'pnml')
 
     for t in n.trans :
         t.name = t.tid
         for x in t.weight_pre.values () :
-            assert x <= 1, "Transition '%s' with weight != 1" % repr (t)
+            if x == 1 : continue
+            print 'mcc15-helper: transition %s' % str (t)
+            raise AssertionError, \
+                    "transition '%s': the net is not ordinary" % repr (t)
         for x in t.weight_post.values () :
-            assert x <= 1, "Transition '%s' with weight != 1" % repr (t)
+            if x == 1 : continue
+            print 'mcc15-helper: transition %s' % str (t)
+            raise AssertionError, \
+                    "transition '%s': the net is not ordinary" % repr (t)
 
-    n.plain2cont ()
-    n.write (fout, 'll_net')
+    #n.plain2cont ()
+
+    ptnet.save_net (sys.argv[3], n, 'll_net', 'mcc15-helper: ')
+    #fout = open (sys.argv[3], 'w')
+    #n.write (fout, 'll_net')
 
 def xml2cunf () :
     fout = open (sys.argv[3], 'w')
 
     formulas = mcc15.Formula.read (sys.argv[2], None, fmt='mcc15')
     for f in formulas :
-        print f
         f.write (fout, 'cunf')
     fout.close ()
 
 def main () :
+    print 'mcc15-helper: args', sys.argv
     assert len (sys.argv) == 4, "4 arguments expected"
     if sys.argv[1] == "pnml2pep" :
         pnml2pep ()

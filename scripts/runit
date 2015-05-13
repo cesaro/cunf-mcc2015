@@ -1,12 +1,24 @@
 #!/bin/bash
 
-timeit ()
+run_benchmark ()
 {
-	/usr/bin/time -l -- $* 2> ri.time
-	EXITST=$?
-	WALLTIME=$(head -n1 ri.time | sed 's/real.*//g;s/ //g')s
-	M=$(head -n2 ri.time | tail -n1 | sed 's/max.*//g;s/ //g')
-	MAXRSS=$(($M / 1024 / 1024))MB
+	# runs the benchkit_head script on $MODEL and $EXAM
+
+	echo "rit: MODEL=$MODEL" >&2
+	echo "rit: EXAM=$EXAM" >&2
+
+	BKHOME=~/BenchKit
+	TMP=/tmp/run
+
+	mkdir -p "$TMP"
+	cd "$TMP"
+	#rm -Rf "$MODEL"
+	tar xzf "$BKHOME/INPUTS/$MODEL.tgz"
+	cd "$MODEL"
+	echo "rit: PWD $PWD" >&2
+	export BK_EXAMINATION="$EXAM"
+	export BK_TOOL=cunf
+	"$BKHOME"/BenchKit_head.sh
 }
 
 ########################
@@ -28,9 +40,12 @@ if [ "$#" = 1 ]; then
 	MODEL="$1"
 fi
 
+run_benchmark
+
 # - /tmp/run/ResAllocation-PT-R020C002, ReachabilityFireability has mixture
 #   of results :)
 # - MODEL=SharedMemory-PT-000050 produces a crash in cunf
+# - MODEL=GlobalResAllocation-PT-03 has weighted arcs
 
 #MODEL=SharedMemory-PT-000050
 #MODEL=/tmp/run/HouseConstruction-PT-050 # unsafe
@@ -40,23 +55,3 @@ fi
 #EXAM=ReachabilityFireabilitySimple
 #EXAM=ReachabilityFireability
 
-
-echo "rit: MODEL=$MODEL"
-echo "rit: EXAM=$EXAM"
-
-BKHOME=/tmp/benchkit
-TMP=/tmp/run
-
-mkdir -p "$TMP"
-cd "$TMP"
-rm -Rf "$MODEL"
-tar xzf "$BKHOME/INPUTS/$MODEL.tgz"
-cd "$MODEL"
-echo "rit: PWD $PWD"
-export BK_EXAMINATION="$EXAM"
-export BK_TOOL=cunf
-timeit "$BKHOME"/BenchKit_head.sh
-echo "rit: overall : time $WALLTIME maxrss $MAXRSS" >> ri.times
-echo "================"
-cat ri.times
-echo "======================================================"

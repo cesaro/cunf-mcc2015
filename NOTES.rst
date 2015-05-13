@@ -19,3 +19,4 @@ ReachabilityFireability
   categories; read ``ToolSubmissionKit/READ_ME.pdf`` first.
 * Adapt ``scripts/runit`` if necessary, and run a dummy execution on a couple
   of models
+* Adapt BenchKit_head.sh to run cunf on deadlock for all models in doc/models-1

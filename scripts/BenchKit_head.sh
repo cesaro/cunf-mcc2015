@@ -2,7 +2,7 @@
 
 # BK_EXAMINATION: it is a string that identifies your "examination"
 
-export PATH="$PATH:/home/mcc/BenchKit/bin/"
+export PATH="$PATH:$HOME/BenchKit/bin/"
 
 debug ()
 {
@@ -16,20 +16,30 @@ info ()
 
 timeit ()
 {
+	if uname -a | grep -qi darwin; then
+		timeit_mac $*
+	else
+		timeit_linux $*
+	fi
+}
+
+timeit_mac ()
+{
+	/usr/bin/time -l -- $* 2> bk.time
+	EXITST=$?
+	WALLTIME=$(head -n1 bk.time | sed 's/real.*//g;s/ //g')s
+	M=$(head -n2 bk.time | tail -n1 | sed 's/max.*//g;s/ //g')
+	MAXRSS=$(($M / 1024 / 1024))MB
+}
+
+timeit_linux ()
+{
 	/usr/bin/time -f '%e\n%M' -o bk.time "$@"
 	EXITST=$?
 	WALLTIME=$(head -n1 bk.time)s
 	MAXRSS=$(($(tail -n1 bk.time) / 1024))MB
 }
 
-timeit_mac ()
-{
-	/usr/bin/time -l -- $* 2> ri.time
-	EXITST=$?
-	WALLTIME=$(head -n1 ri.time | sed 's/real.*//g;s/ //g')s
-	M=$(head -n2 ri.time | tail -n1 | sed 's/max.*//g;s/ //g')
-	MAXRSS=$(($M / 1024 / 1024))MB
-}
 
 mycat ()
 {
@@ -40,57 +50,51 @@ mycat ()
 translate_model ()
 {
 	if test -f model.ll_net; then return 0; fi
-	#debug "Translating PNML into PEP (+ place-replication encoding)..."
-	#timeit sh -c '
-	mcc15-helper.py pnml2pep model.pnml model.ll_net > err 2>&1
+	debug "translating PNML into contextual PEP ..."
+	#mcc15-helper.py pnml2pep model.pnml model-ra.ll_net >&2
+	mcc15-helper.py pnml2pep model.pnml model.ll_net >&2
 	if [ "$?" != "0" ]; then
-		mycat err
-		info "Error: pnml2pep: problems"
-		info "Error: pnml2pep: quite probably the net is not 1-safe"
+		info "Error: pnml2pep: PNML translation failed, quite probably the net is not 1-safe"
 		echo "DO_NOT_COMPETE"
 		exit 0
 	fi
-	mycat err
-	return 0
+	debug "translating contextual PEP into PR..."
+	#cont2pr.pl < model-ra.ll_net > model.ll_net
+	#rm model-ra.ll_net > /dev/null
 }
 
 translate_spec ()
 {
 	if test -f $BK_EXAMINATION.cunf; then return 0; fi
-	if [ "$BK_EXAMINATION" == "ReachabilityDeadlock" ]; then
-		debug "special case"
-		echo "special case :)" > ReachabilityDeadlock.cunf
-		return 0
-	fi
-	mcc15-helper.py xml2cunf $BK_EXAMINATION.xml $BK_EXAMINATION.cunf > err 2>&1
+	debug "translating specification..."
+	mcc15-helper.py xml2cunf $BK_EXAMINATION.xml $BK_EXAMINATION.cunf >&2
 	if [ "$?" != "0" ]; then
-		mycat err
 		info "Error: xml2cunf: returns error state, aborting"
 		echo "DO_NOT_COMPETE"
 		exit 0
 	fi
-	mycat err
-	return 0
+}
+
+cunf_unsafe_net ()
+{
+	info "Error: cunf seems to detect the net is not safe, aborting"
+	mycat cunf.out
+	mycat cunf.err
+	echo "DO_NOT_COMPETE"
+	exit 0
 }
 
 do_verif ()
 {
 	translate_model
 	translate_spec
-	return 0
 
-	#timeit
-	cunf model.ll_net $BK_EXAMINATION.cunf > cunf.out 2> cunf.err
+	debug "running cunf ..."
+	cunf -i model.ll_net $BK_EXAMINATION.cunf > cunf.out 2> cunf.err
 	#info "cunf    : time $WALLTIME maxrss $MAXRSS" | tee -a ri.times
 	#if [ "$EXITST" != 0 ]; then
 	if [ "$?" != 0 ]; then
-		if grep -q 'is not safe' cunf.err; then
-			info "Error: cunf seems to detect the net is not safe, aborting"
-			mycat cunf.out
-			mycat cunf.err
-			echo "DO_NOT_COMPETE"
-			exit 0
-		fi
+		if grep -q 'is not safe' cunf.err; then cunf_unsafe_net; fi
 		info "Error: cunf returns an error state, aborting"
 		mycat cunf.out
 		mycat cunf.err
@@ -98,12 +102,16 @@ do_verif ()
 		exit 0
 	fi
 
+	grep "cpu\|memory\|^events\|tor co\|tor mrk\|cutoff" cunf.out >&2
+	#mycat cunf.out
+
 	#debug "Mixing formula ids and verification results"
-	grep '^#' cunf.spec > tmp.ids
+	grep '^#' $BK_EXAMINATION.cunf > tmp.ids
 	grep '^Result   :' cunf.out > tmp.results
 
-	#echo "Result   : UNSAT" > tmp.results
-	#> tmp.results
+	#mycat tmp.ids
+	#mycat tmp.results
+	#return 0
 
 	let "n = $(wc -l < tmp.ids)"
 	let "m = $(wc -l < tmp.results)"
@@ -111,7 +119,7 @@ do_verif ()
 	if [ "$n" != "$m" ]; then
 		info "WARNING: mismatch between # of formula ids and # of result lines"
 		info "Specification file:"
-		mycat cunf.spec
+		mycat $BK_EXAMINATION.cunf
 		info "Results file:"
 		mycat cunf.out
 	fi
@@ -122,8 +130,8 @@ do_verif ()
 	do
 		read -u 3 lineid
 		read -u 4 lineres
-		negate=${lineid:2:1}
-		id=${lineid:4}
+		negate=${lineid:9:1}
+		id=`echo "${lineid:14}" | sed 's/ txt=.*//g'`
 		res=${lineres:11}
 		#debug "negate '$negate' id '$id' result '$res'"
 
