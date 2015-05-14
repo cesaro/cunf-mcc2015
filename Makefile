@@ -36,15 +36,21 @@ inst : $(TARGETS) $R
 	rm -Rf $R/bin/
 	mkdir $R/bin/
 	cp scripts/BenchKit_head.sh $R
-	cd $C; make src/cunf/cunf
+	#cd $C; make src/cunf/cunf
 	cp $C/src/cunf/cunf $R/bin
 	cp $C/tools/cont2pr.pl $R/bin
 	cp scripts/mcc15-helper.py $R/bin
 	cp scripts/repack.sh $R/bin
 	cp -R $P/src/{mcc15,pncat,ptnet} $R/bin
 
+K=ToolSubmissionKit/bk-private_key
 vm_inst : inst
 	echo hello world
+	ssh -i $K mcc@localhost -p2222 rm -rf BenchKit/{bin,BenchKit_head.sh}
+	(cd $R; tar c BenchKit_head.sh bin) | \
+		ssh -i $K mcc@localhost -p2222 "cd BenchKit; tar x -m"
+	ssh -i $K mcc@localhost -p2222 "find BenchKit | grep -v INPUTS | xargs ls -ld"
+
 
 tags : $(SRCS)
 	ctags -R src

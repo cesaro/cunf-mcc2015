@@ -50,15 +50,13 @@ mycat ()
 translate_model ()
 {
 	if test -f model.ll_net; then return 0; fi
-	debug "translating PNML into contextual PEP ..."
-	#mcc15-helper.py pnml2pep model.pnml model-ra.ll_net >&2
+	debug "translating PNML into PEP ..."
 	mcc15-helper.py pnml2pep model.pnml model.ll_net >&2
 	if [ "$?" != "0" ]; then
 		info "Error: pnml2pep: PNML translation failed, quite probably the net is not 1-safe"
 		echo "DO_NOT_COMPETE"
 		exit 0
 	fi
-	debug "translating contextual PEP into PR..."
 	#cont2pr.pl < model-ra.ll_net > model.ll_net
 	#rm model-ra.ll_net > /dev/null
 }

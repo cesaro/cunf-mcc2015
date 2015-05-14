@@ -7,6 +7,8 @@ ReachabilityFireability
 .. ReachabilityCardinality
 
 
+Notes for next year
+===================
 
 * Decide which categories you compete
 * Extract files from the vm with::
@@ -20,3 +22,7 @@ ReachabilityFireability
 * Adapt ``scripts/runit`` if necessary, and run a dummy execution on a couple
   of models
 * Adapt BenchKit_head.sh to run cunf on deadlock for all models in doc/models-1
+* Install on the machine with make vm_inst
+* Run in the machine with scripts/vm_runit.sh
+* Remove unnecessary files in the .tgz's with scripts/repack.sh, and then copy
+  back the new .tgz's with ssh + tar

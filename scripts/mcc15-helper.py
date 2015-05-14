@@ -54,8 +54,8 @@ def main () :
     sys.exit (0)
 
 if __name__ == '__main__' :
-    main ()
-    sys.exit (0)
+    #main ()
+    #sys.exit (0)
     try :
         main ()
         sys.exit (0)
