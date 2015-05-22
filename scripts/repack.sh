@@ -40,6 +40,10 @@ translate_spec ()
 
 main ()
 {
+	# this script takes as input the original set of .tgz files in the
+	# ~/BenchKit/INPUTS folder, translates specifications into Cunf's format and
+	# removes unnecesary files
+
 	#set -x
 	export PATH="$PATH:$HOME/BenchKit/bin/"
 	BKHOME=~/BenchKit
